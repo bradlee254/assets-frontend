@@ -22,6 +22,23 @@ const routes = [
         name: 'assets',
         component: () => import('../pages/assets/AssetList.vue'),
       },
+      {
+        path: 'assets/:id',
+        name: 'asset-profile',
+        component: () => import('../pages/assets/AssetProfile.vue'),
+        props: true, 
+      },
+      {
+        path: 'assets/:id/edit',
+        name: 'asset-edit',
+        component: () => import('../pages/assets/AssetForm.vue'),
+        props: true,
+      },
+      {
+        path: 'assets/new',
+        name: 'asset-new',
+        component: () => import('../pages/assets/AssetForm.vue'),
+      },
     ],
   },
 ];

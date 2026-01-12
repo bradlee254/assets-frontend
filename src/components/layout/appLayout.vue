@@ -1,21 +1,18 @@
 <script setup lang="ts">
 import Sidebar from './Sidebar.vue';
-import Topbar from './TopBar.vue';
 </script>
 
 <template>
-  <div class="flex bg-app-bg text-text-muted min-h-screen">
+  <div class="flex h-screen bg-app-bg text-text-muted">
     <!-- Sidebar -->
     <Sidebar />
 
-    <!-- Main -->
-    <div class="flex-1 flex flex-col">
-      <Topbar />
-
-      <!-- Page content -->
-      <main class="flex-1 p-8">
+    <!-- Main content -->
+    <main class="flex-1 flex flex-col">
+      
+      <div class="flex-1 overflow-auto p-8">
         <router-view />
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
 </template>

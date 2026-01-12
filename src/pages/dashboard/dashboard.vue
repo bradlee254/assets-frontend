@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#0f172a] p-8 text-slate-200 font-sans">
+  <div class="h-full bg-[#0f172a] p-8 text-slate-200 font-sans">
     <header class="mb-10 flex justify-between items-end">
       <div class="space-y-1">
         <h1 class="text-3xl font-bold tracking-tight text-white">System Dashboard</h1>
