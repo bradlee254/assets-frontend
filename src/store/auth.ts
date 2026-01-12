@@ -39,7 +39,19 @@ export const useAuthStore = defineStore('auth', ()=>{
             u => u.email === email && u.email === password
         )
         if(!found){
-            throw new Error
+            throw new Error ("Invalid credentials")
         }
+        user.value = {
+            id: found.id,
+            name: found.name,
+            email: found.email,
+            role: found.role as Role
+        }
+     }
+     function logout(){
+        user.value = null
+     }
+     return{
+        user, isAuthenticated, login, logout
      }
 })
