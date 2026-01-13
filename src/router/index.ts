@@ -23,6 +23,16 @@ const routes = [
         component: () => import('../pages/assets/AssetList.vue'),
       },
       {
+        path: 'categories',
+        name: 'categories',
+        component: () => import('../pages/categories/CategoryList.vue'),
+      },
+      {
+        path: 'reports',
+        name: 'reports',
+        component: () => import('../pages/reports/reports.vue'),
+      },
+      {
         path: 'assets/new',             
         name: 'asset-new',
         component: () => import('../pages/assets/AssetForm.vue'),

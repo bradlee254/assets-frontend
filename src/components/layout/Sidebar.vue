@@ -7,6 +7,9 @@ const router = useRouter();
 const navItems = [
   { name: 'Dashboard', path: '/', icon: '▢' },
   { name: 'Assets', path: '/assets', icon: '▢' },
+  { name: 'Categories', path: '/categories', icon: '▢' },
+  { name: 'Reports', path: '/reports', icon: '▢' },
+  //{ name: 'Users', path: '/users', icon: '▢' },
 ];
 
 // Mock user data (replace later with API)
