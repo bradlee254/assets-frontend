@@ -1,5 +1,30 @@
 <script setup lang="ts">
-// Data fetching logic can be added here later
+import { ref, onMounted } from 'vue'
+import api from '../../services/api';
+
+const totalAssets = ref(0)
+const activeAssets = ref(0)
+const assignedAssets = ref(0)
+const maintenanceAssets = ref(0)
+const retiredAssets = ref(0)
+const lastSync = ref('')
+
+const fetchDashboardData = async () => {
+  try {
+    const response = await api.get('/dashboard/summary')
+    const data = response.data
+    totalAssets.value = data.totalAssets
+    activeAssets.value = data.activeAssets
+    assignedAssets.value = data.assignedAssets
+    maintenanceAssets.value = data.maintenanceAssets
+    retiredAssets.value = data.retiredAssets
+    lastSync.value = data.lastSync
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error)
+  }
+}
+
+onMounted(fetchDashboardData)
 </script>
 
 <template>
@@ -11,7 +36,7 @@
       </div>
       <div class="text-right hidden md:block">
         <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Last Sync</p>
-        <p class="text-sm font-mono text-indigo-400">2026-01-12 22:30</p>
+        <p class="text-sm font-mono text-indigo-400">{{ lastSync }}</p>
       </div>
     </header>
 
@@ -19,7 +44,7 @@
       <div class="bg-[#1e293b] border-l-4 border-indigo-500 p-6 rounded-r-lg shadow-sm">
         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Assets</p>
         <div class="flex items-baseline gap-3">
-          <h2 class="text-4xl font-bold text-white">128</h2>
+          <h2 class="text-4xl font-bold text-white">{{ totalAssets }}</h2>
           <span class="text-xs font-bold px-2 py-0.5 bg-indigo-500/10 text-indigo-400 rounded">Active</span>
         </div>
         <p class="text-slate-500 text-xs mt-4 flex items-center gap-1">
@@ -29,7 +54,7 @@
 
       <div class="bg-[#1e293b] border-l-4 border-blue-500 p-6 rounded-r-lg shadow-sm">
         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Assigned</p>
-        <h2 class="text-4xl font-bold text-white">94</h2>
+        <h2 class="text-4xl font-bold text-white">{{ assignedAssets }}</h2>
         <div class="w-full bg-slate-700 h-1.5 mt-4 rounded-full overflow-hidden">
           <div class="bg-blue-500 h-full w-[73%]"></div>
         </div>
@@ -38,7 +63,7 @@
 
       <div class="bg-[#1e293b] border-l-4 border-amber-500 p-6 rounded-r-lg shadow-sm">
         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Maintenance</p>
-        <h2 class="text-4xl font-bold text-white">06</h2>
+        <h2 class="text-4xl font-bold text-white">{{ maintenanceAssets }}</h2>
         <p class="text-amber-500 text-xs mt-4 font-bold flex items-center gap-2">
           <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
           Requires immediate attention
@@ -47,7 +72,7 @@
 
       <div class="bg-[#1e293b] border-l-4 border-slate-600 p-6 rounded-r-lg shadow-sm">
         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Retired</p>
-        <h2 class="text-4xl font-bold text-white">12</h2>
+        <h2 class="text-4xl font-bold text-white">{{ retiredAssets }}</h2>
         <p class="text-slate-500 text-xs mt-4 font-medium italic">Decommissioned lifecycle</p>
       </div>
     </div>

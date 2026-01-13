@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '../../services/api'
 
 import Badge from '../../components/ui/Badge.vue'
 import Button from '../../components/ui/Button.vue'
@@ -8,12 +9,45 @@ import Table from '../../components/ui/Table.vue'
 import Input from '../../components/ui/Input.vue'
 import Select from '../../components/ui/Select.vue'
 import Pagination from '../../components/ui/Pagination.vue'
-import { useAssets } from '../../composable/useAssets'
+
+interface Asset {
+  id: string
+  name: string
+  type: 'Physical' | 'Soft'
+  status: 'Active' | 'Assigned' | 'Maintenance' | 'Retired'
+  department: string
+  assignedTo: string
+  purchaseDate: string
+}
 
 const router = useRouter()
+const assets = ref<Asset[]>([])
 
-// Store
-const { assets, deleteAsset } = useAssets()
+// Fetch assets from backend
+const fetchAssets = async () => {
+  try {
+    const { data } = await api.get('/assets')
+    // Ensure purchaseDate is formatted for display
+    assets.value = data.map((a: any) => ({
+      ...a,
+      purchaseDate: a.purchaseDate.split('T')[0],
+    }))
+  } catch (error) {
+    console.error('Failed to fetch assets:', error)
+  }
+}
+
+// Delete asset
+const deleteAsset = async (id: string) => {
+  const confirmed = window.confirm('Are you sure you want to delete this asset?')
+  if (!confirmed) return
+  try {
+    await api.delete(`/assets/${id}`)
+    assets.value = assets.value.filter(a => a.id !== id)
+  } catch (error) {
+    console.error('Failed to delete asset:', error)
+  }
+}
 
 // Search & Filter
 const search = ref('')
@@ -51,7 +85,13 @@ const goToAssetProfile = (id: string) => {
 const goToEdit = (id: string) => {
   router.push({ name: 'asset-edit', params: { id } })
 }
+
+// Fetch assets on mount
+onMounted(() => {
+  fetchAssets()
+})
 </script>
+
 
 <template>
   <div class="h-full flex flex-col gap-6">
