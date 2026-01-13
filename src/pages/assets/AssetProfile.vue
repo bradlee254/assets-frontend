@@ -14,26 +14,28 @@ const tabs = [
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 text-var(--color-text-main)">
     <h1 class="text-xl font-bold">Asset Profile</h1>
 
     <!-- Tabs -->
-    <div class="flex gap-4 border-b">
+    <div class="flex gap-6 border-b border-var(--color-app-border-pill)">
       <button
         v-for="tab in tabs"
         :key="tab.key"
         @click="activeTab = tab.key"
-        class="pb-2"
+        class="pb-3 text-sm"
         :class="activeTab === tab.key
-          ? 'border-b-2 border-blue-600 font-semibold'
-          : 'text-gray-500'"
+          ? 'border-b-2 border-var(--color-brand) text-white'
+          : 'text-var(--color-text-muted)'"
       >
         {{ tab.label }}
       </button>
     </div>
 
-    <!-- Content -->
-    <div class="bg-white p-6 rounded shadow">
+    <!-- Content Surface -->
+    <div
+      class="rounded p-6 border border-(--color-app-border) bg-(--color-app-surface)"
+    >
       <AssetAssign v-if="activeTab === 'assign'" />
       <AssetMaintenance v-if="activeTab === 'maintenance'" />
       <AssetDocuments v-if="activeTab === 'documents'" />

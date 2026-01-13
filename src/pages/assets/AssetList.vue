@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import Badge from '../../components/ui/Badge.vue'
@@ -8,49 +8,14 @@ import Table from '../../components/ui/Table.vue'
 import Input from '../../components/ui/Input.vue'
 import Select from '../../components/ui/Select.vue'
 import Pagination from '../../components/ui/Pagination.vue'
-
-interface Asset {
-  id: string
-  name: string
-  type: 'Physical' | 'Soft'
-  status: 'Active' | 'Assigned' | 'Maintenance' | 'Retired'
-  department: string
-  assignedTo: string
-  purchaseDate: string
-}
-
-const assets: Asset[] = [
-  {
-    id: 'A001',
-    name: 'Laptop Dell XPS',
-    type: 'Physical',
-    status: 'Active',
-    department: 'IT',
-    assignedTo: 'John Doe',
-    purchaseDate: '2025-12-01',
-  },
-  {
-    id: 'A002',
-    name: 'Adobe CC License',
-    type: 'Soft',
-    status: 'Assigned',
-    department: 'Design',
-    assignedTo: 'Jane Smith',
-    purchaseDate: '2025-11-10',
-  },
-  {
-    id: 'A003',
-    name: 'Projector Epson',
-    type: 'Physical',
-    status: 'Maintenance',
-    department: 'HR',
-    assignedTo: 'N/A',
-    purchaseDate: '2024-09-15',
-  },
-]
+import { useAssets } from '../../composable/useAssets'
 
 const router = useRouter()
 
+// Store
+const { assets, deleteAsset } = useAssets()
+
+// Search & Filter
 const search = ref('')
 const filterStatus = ref('')
 const currentPage = ref(1)
@@ -64,9 +29,27 @@ const statusOptions = [
   { label: 'Retired', value: 'Retired' },
 ]
 
-// ✅ single source of truth for navigation
+// Filtered assets
+const filteredAssets = computed(() => {
+  return assets.value.filter(a => {
+    const matchesSearch =
+      a.name.toLowerCase().includes(search.value.toLowerCase()) ||
+      a.department.toLowerCase().includes(search.value.toLowerCase()) ||
+      a.type.toLowerCase().includes(search.value.toLowerCase())
+
+    const matchesStatus = filterStatus.value ? a.status === filterStatus.value : true
+
+    return matchesSearch && matchesStatus
+  })
+})
+
+// Navigation
 const goToAssetProfile = (id: string) => {
   router.push({ name: 'asset-profile', params: { id } })
+}
+
+const goToEdit = (id: string) => {
+  router.push({ name: 'asset-edit', params: { id } })
 }
 </script>
 
@@ -84,14 +67,8 @@ const goToAssetProfile = (id: string) => {
 
     <!-- Search & Filter -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <Input
-        v-model="search"
-        placeholder="Search by name, department, or type..."
-      />
-      <Select
-        v-model="filterStatus"
-        :options="statusOptions"
-      />
+      <Input v-model="search" placeholder="Search by name, department, or type..." />
+      <Select v-model="filterStatus" :options="statusOptions" />
     </div>
 
     <!-- Table -->
@@ -109,23 +86,14 @@ const goToAssetProfile = (id: string) => {
         ]"
       >
         <tr
-          v-for="asset in assets"
+          v-for="asset in filteredAssets"
           :key="asset.id"
           class="border-b border-app-border-pill hover:bg-white/[0.02] transition-colors cursor-pointer"
           @click="goToAssetProfile(asset.id)"
         >
-          <td class="px-4 py-3 text-sm font-medium text-text-main">
-            {{ asset.id }}
-          </td>
-
-          <td class="px-4 py-3 text-sm text-text-main">
-            {{ asset.name }}
-          </td>
-
-          <td class="px-4 py-3 text-sm text-text-main">
-            {{ asset.type }}
-          </td>
-
+          <td class="px-4 py-3 text-sm font-medium text-text-main">{{ asset.id }}</td>
+          <td class="px-4 py-3 text-sm text-text-main">{{ asset.name }}</td>
+          <td class="px-4 py-3 text-sm text-text-main">{{ asset.type }}</td>
           <td class="px-4 py-3 text-sm font-bold">
             <Badge
               :text="asset.status"
@@ -140,33 +108,20 @@ const goToAssetProfile = (id: string) => {
               "
             />
           </td>
-
-          <td class="px-4 py-3 text-sm text-text-main">
-            {{ asset.department }}
-          </td>
-
-          <td class="px-4 py-3 text-sm text-text-main">
-            {{ asset.assignedTo }}
-          </td>
-
-          <td class="px-4 py-3 text-sm text-text-main">
-            {{ asset.purchaseDate }}
-          </td>
+          <td class="px-4 py-3 text-sm text-text-main">{{ asset.department }}</td>
+          <td class="px-4 py-3 text-sm text-text-main">{{ asset.assignedTo }}</td>
+          <td class="px-4 py-3 text-sm text-text-main">{{ asset.purchaseDate }}</td>
 
           <!-- Actions -->
-          <td class="px-4 py-3 text-sm flex gap-2">
-            <Button
-              label="Edit"
-              type="secondary"
-              small
-              @click.stop="router.push({ name: 'asset-edit', params: { id: asset.id } })"
-            />
-            <Button
-              label="Delete"
-              type="danger"
-              small
-              @click.stop="alert('Delete mock!')"
-            />
+          <td class="px-4 py-3 text-sm flex gap-2" @click.stop>
+            <Button label="Edit" type="secondary" small @click="goToEdit(asset.id)" />
+            <Button label="Delete" type="danger" small @click="deleteAsset(asset.id)" />
+          </td>
+        </tr>
+
+        <tr v-if="filteredAssets.length === 0">
+          <td colspan="8" class="px-4 py-8 text-center text-text-muted">
+            No assets found
           </td>
         </tr>
       </Table>
