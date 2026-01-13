@@ -5,7 +5,7 @@ const route = useRoute();
 const router = useRouter();
 
 const navItems = [
-  { name: 'Dashboard', path: '/', icon: '▣' },
+  { name: 'Dashboard', path: '/', icon: '▢' },
   { name: 'Assets', path: '/assets', icon: '▢' },
 ];
 

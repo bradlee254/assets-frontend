@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import Login from '../pages/auth/Login.vue';
+import { createRouter, createWebHistory } from 'vue-router'
+import Login from '../pages/auth/Login.vue'
 
 const routes = [
   {
@@ -26,7 +26,7 @@ const routes = [
         path: 'assets/:id',
         name: 'asset-profile',
         component: () => import('../pages/assets/AssetProfile.vue'),
-        props: true, 
+        props: true,
       },
       {
         path: 'assets/:id/edit',
@@ -34,18 +34,11 @@ const routes = [
         component: () => import('../pages/assets/AssetForm.vue'),
         props: true,
       },
-      {
-        path: 'assets/new',
-        name: 'asset-new',
-        component: () => import('../pages/assets/AssetForm.vue'),
-      },
     ],
   },
-];
+]
 
-const router = createRouter({
+export default createRouter({
   history: createWebHistory(),
   routes,
-});
-
-export default router;
+})

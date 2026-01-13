@@ -1,98 +1,169 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import Input from '../../components/ui/Input.vue';
-import Select from '../../components/ui/Select.vue';
-import Button from '../../components/ui/Button.vue';
-import FileUpload from '../../components/ui/FileUpload.vue';
-import Card from '../../components/ui/Card.vue';
-import { defineProps } from 'vue';
+import { computed, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
-// Props: optional asset for edit mode
-defineProps<{ id?: string }>();
+import Card from '../../components/ui/Card.vue'
+import Button from '../../components/ui/Button.vue'
+import Input from '../../components/ui/Input.vue'
+import Select from '../../components/ui/Select.vue'
+import Badge from '../../components/ui/Badge.vue'
 
-// Mock: fetch asset by id if editing
-const assets = [
-  { id: 'A001', name: 'Laptop Dell XPS', type: 'Physical', category: 'Laptop', serial: 'DX123456', model: 'XPS 15', supplier: 'Dell', purchaseDate: '2025-12-01', cost: 2500, department: 'IT', assignedTo: 'John Doe', status: 'Active' },
-  { id: 'A002', name: 'Adobe CC License', type: 'Soft', category: 'Software', serial: 'AD123', model: 'CC2025', supplier: 'Adobe', purchaseDate: '2025-11-10', cost: 500, department: 'Design', assignedTo: 'Jane Smith', status: 'Assigned' },
-];
+const route = useRoute()
+const router = useRouter()
 
-const asset = props.id ? assets.find(a => a.id === props.id) : null;
+// Detect mode
+const isEdit = computed(() => !!route.params.id)
 
-const form = ref({
-  name: asset?.name || '',
-  type: asset?.type || 'Physical',
-  category: asset?.category || '',
-  serial: asset?.serial || '',
-  model: asset?.model || '',
-  supplier: asset?.supplier || '',
-  purchaseDate: asset?.purchaseDate || '',
-  cost: asset?.cost || '',
-  department: asset?.department || '',
-  assignedTo: asset?.assignedTo || '',
-  status: asset?.status || 'Active',
-  documents: [] as File[],
-});
+// Mock existing asset (for edit mode)
+const existingAsset = {
+  id: 'A001',
+  name: 'Laptop Dell XPS',
+  type: 'Physical',
+  category: 'Laptop',
+  serial: 'DX123456',
+  model: 'XPS 15',
+  supplier: 'Dell',
+  purchaseDate: '2025-12-01',
+  cost: 2500,
+  department: 'IT',
+  status: 'Active',
+}
 
-const typeOptions = [
-  { label: 'Physical', value: 'Physical' },
-  { label: 'Soft', value: 'Soft' },
-];
+// Asset form state
+const form = reactive({
+  type: existingAsset.type || 'Physical',
+  name: existingAsset.name || '',
+  category: existingAsset.category || '',
+  description: '',
+  serial: existingAsset.serial || '',
+  model: existingAsset.model || '',
+  supplier: existingAsset.supplier || '',
+  purchaseDate: existingAsset.purchaseDate || '',
+  cost: existingAsset.cost || '',
+  department: existingAsset.department || '',
+  licenseKey: '',
+  vendor: '',
+  renewalDate: '',
+  subscriptionTerm: '',
+  agree: false,
+})
 
-const statusOptions = [
-  { label: 'Active', value: 'Active' },
-  { label: 'Assigned', value: 'Assigned' },
-  { label: 'Maintenance', value: 'Maintenance' },
-  { label: 'Retired', value: 'Retired' },
-];
+const showSummary = ref(false)
 
-const categoryOptions = [
-  { label: 'Laptop', value: 'Laptop' },
-  { label: 'Software', value: 'Software' },
-  { label: 'Accessory', value: 'Accessory' },
-  { label: 'Other', value: 'Other' },
-];
+// Options
+const assetTypes = [
+  { label: 'Physical Asset', value: 'Physical' },
+  { label: 'Soft Asset', value: 'Soft' },
+]
 
-const departmentOptions = [
+const departments = [
   { label: 'IT', value: 'IT' },
   { label: 'HR', value: 'HR' },
-  { label: 'Design', value: 'Design' },
   { label: 'Finance', value: 'Finance' },
-];
+]
 
-const handleSubmit = () => {
-  console.log('Form submitted:', form.value);
-  alert('Form submitted (mock)!');
-};
+// Actions
+const submit = () => {
+  if (!form.agree) {
+    alert('You must agree to terms before saving')
+    return
+  }
 
-const handleFileUpload = (files: FileList | null) => {
-  if (files) form.value.documents = Array.from(files);
-};
+  console.log('Saving asset:', form)
+
+  router.push({ name: 'assets' })
+}
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-6">
-    <h1 class="text-2xl font-bold text-text-main">{{ asset ? 'Edit Asset' : 'Add New Asset' }}</h1>
-
-    <Card title="Asset Details" :value="form.value.name || 'New Asset'">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <Input v-model="form.value.name" placeholder="Asset Name" />
-        <Select v-model="form.value.type" :options="typeOptions" />
-        <Select v-model="form.value.category" :options="categoryOptions" />
-        <Input v-model="form.value.serial" placeholder="Serial Number" />
-        <Input v-model="form.value.model" placeholder="Model" />
-        <Input v-model="form.value.supplier" placeholder="Supplier" />
-        <Input v-model="form.value.purchaseDate" type="date" placeholder="Purchase Date" />
-        <Input v-model="form.value.cost" type="number" placeholder="Cost ($)" />
-        <Select v-model="form.value.department" :options="departmentOptions" />
-        <Input v-model="form.value.assignedTo" placeholder="Assigned To" />
-        <Select v-model="form.value.status" :options="statusOptions" />
-        <FileUpload @change="handleFileUpload" :multiple="true" />
+  <div class="h-full flex flex-col gap-6 max-w-5xl">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-text-main">
+          {{ isEdit ? 'Edit Asset' : 'Register New Asset' }}
+        </h1>
+        <p class="text-text-dim text-sm">
+          {{ isEdit ? 'Update asset details' : 'Enter asset information' }}
+        </p>
       </div>
 
-      <div class="flex justify-end gap-4 mt-6">
-        <Button label="Cancel" type="secondary" />
-        <Button label="Save Asset" type="primary" @click="handleSubmit" />
+      <Badge
+        :text="form.type"
+        color="brand"
+      />
+    </div>
+
+    <!-- Asset Type -->
+    <Card title="Asset Type">
+      <Select
+        v-model="form.type"
+        :options="assetTypes"
+      />
+    </Card>
+
+    <!-- Basic Information -->
+    <Card title="Basic Information">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Input v-model="form.name" label="Asset Name" />
+        <Input v-model="form.category" label="Category" />
+        <Input v-model="form.model" label="Model" />
+        <Input v-model="form.serial" label="Serial Number" />
+        <Input v-model="form.supplier" label="Supplier" />
+        <Input v-model="form.purchaseDate" type="date" label="Purchase Date" />
+        <Input v-model="form.cost" type="number" label="Cost" />
+        <Select v-model="form.department" :options="departments" label="Department" />
       </div>
     </Card>
+
+    <!-- Soft Asset Fields -->
+    <Card
+      v-if="form.type === 'Soft'"
+      title="License Details"
+    >
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Input v-model="form.licenseKey" label="License Key" />
+        <Input v-model="form.vendor" label="Vendor" />
+        <Input v-model="form.renewalDate" type="date" label="Renewal Date" />
+        <Input v-model="form.subscriptionTerm" label="Subscription Term" />
+      </div>
+    </Card>
+
+    <!-- Summary -->
+    <Card v-if="showSummary" title="Asset Summary">
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div><span class="text-text-dim">Name:</span> {{ form.name }}</div>
+        <div><span class="text-text-dim">Type:</span> {{ form.type }}</div>
+        <div><span class="text-text-dim">Category:</span> {{ form.category }}</div>
+        <div><span class="text-text-dim">Department:</span> {{ form.department }}</div>
+        <div><span class="text-text-dim">Cost:</span> ${{ form.cost }}</div>
+      </div>
+    </Card>
+
+    <!-- Agreement -->
+    <div class="flex items-center gap-2">
+      <input
+        type="checkbox"
+        v-model="form.agree"
+        class="accent-brand"
+      />
+      <p class="text-sm text-text-muted">
+        I confirm that the information provided is accurate and I accept responsibility
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end gap-3">
+      <Button
+        label="Preview Summary"
+        type="secondary"
+        @click="showSummary = !showSummary"
+      />
+      <Button
+        label="Save Asset"
+        type="primary"
+        @click="submit"
+      />
+    </div>
   </div>
 </template>
