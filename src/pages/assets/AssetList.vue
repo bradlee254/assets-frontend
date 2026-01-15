@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '../../services/api'
+import { getAssets, deleteAsset as deleteAssetApi } from '../../services/asset'
 
 import Badge from '../../components/ui/Badge.vue'
 import Button from '../../components/ui/Button.vue'
@@ -23,33 +23,48 @@ interface Asset {
 const router = useRouter()
 const assets = ref<Asset[]>([])
 
-// Fetch assets from backend
+
+// Fetch Assets
+
 const fetchAssets = async () => {
   try {
-    const { data } = await api.get('/assets')
-    // Ensure purchaseDate is formatted for display
-    assets.value = data.map((a: any) => ({
-      ...a,
-      purchaseDate: a.purchaseDate.split('T')[0],
+    const response = await getAssets()
+    const data = response
+
+    assets.value = data.map((item: any) => ({
+      id: String(item._id),
+      name: item.name,
+      type: item.type === 'physical' ? 'Physical' : 'Soft',
+      status: item.status,
+      department: item.department ?? '—',
+      assignedTo: item.assignedTo ?? 'Unassigned',
+      purchaseDate: item.created_at
+        ? item.created_at.split('T')[0]
+        : '—',
     }))
   } catch (error) {
     console.error('Failed to fetch assets:', error)
   }
 }
 
-// Delete asset
-const deleteAsset = async (id: string) => {
-  const confirmed = window.confirm('Are you sure you want to delete this asset?')
-  if (!confirmed) return
+
+// Delete Asset
+
+const handleDeleteAsset = async (id: string) => {
+  if (!confirm('Are you sure you want to delete this asset?')) return
+
   try {
-    await api.delete(`/assets/${id}`)
+    await deleteAssetApi(id)
     assets.value = assets.value.filter(a => a.id !== id)
   } catch (error) {
     console.error('Failed to delete asset:', error)
+    alert('Failed to delete asset')
   }
 }
 
+
 // Search & Filter
+
 const search = ref('')
 const filterStatus = ref('')
 const currentPage = ref(1)
@@ -63,7 +78,6 @@ const statusOptions = [
   { label: 'Retired', value: 'Retired' },
 ]
 
-// Filtered assets
 const filteredAssets = computed(() => {
   return assets.value.filter(a => {
     const matchesSearch =
@@ -71,13 +85,17 @@ const filteredAssets = computed(() => {
       a.department.toLowerCase().includes(search.value.toLowerCase()) ||
       a.type.toLowerCase().includes(search.value.toLowerCase())
 
-    const matchesStatus = filterStatus.value ? a.status === filterStatus.value : true
+    const matchesStatus = filterStatus.value
+      ? a.status === filterStatus.value
+      : true
 
     return matchesSearch && matchesStatus
   })
 })
 
+
 // Navigation
+
 const goToAssetProfile = (id: string) => {
   router.push({ name: 'asset-profile', params: { id } })
 }
@@ -86,12 +104,8 @@ const goToEdit = (id: string) => {
   router.push({ name: 'asset-edit', params: { id } })
 }
 
-// Fetch assets on mount
-onMounted(() => {
-  fetchAssets()
-})
+onMounted(fetchAssets)
 </script>
-
 
 <template>
   <div class="h-full flex flex-col gap-6">
@@ -107,7 +121,10 @@ onMounted(() => {
 
     <!-- Search & Filter -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <Input v-model="search" placeholder="Search by name, department, or type..." />
+      <Input
+        v-model="search"
+        placeholder="Search by name, department, or type..."
+      />
       <Select v-model="filterStatus" :options="statusOptions" />
     </div>
 
@@ -131,9 +148,18 @@ onMounted(() => {
           class="border-b border-app-border-pill hover:bg-white/[0.02] transition-colors cursor-pointer"
           @click="goToAssetProfile(asset.id)"
         >
-          <td class="px-4 py-3 text-sm font-medium text-text-main">{{ asset.id }}</td>
-          <td class="px-4 py-3 text-sm text-text-main">{{ asset.name }}</td>
-          <td class="px-4 py-3 text-sm text-text-main">{{ asset.type }}</td>
+          <td class="px-4 py-3 text-sm font-medium text-text-main">
+            {{ asset.id }}
+          </td>
+
+          <td class="px-4 py-3 text-sm text-text-main">
+            {{ asset.name }}
+          </td>
+
+          <td class="px-4 py-3 text-sm text-text-main">
+            {{ asset.type }}
+          </td>
+
           <td class="px-4 py-3 text-sm font-bold">
             <Badge
               :text="asset.status"
@@ -148,19 +174,41 @@ onMounted(() => {
               "
             />
           </td>
-          <td class="px-4 py-3 text-sm text-text-main">{{ asset.department }}</td>
-          <td class="px-4 py-3 text-sm text-text-main">{{ asset.assignedTo }}</td>
-          <td class="px-4 py-3 text-sm text-text-main">{{ asset.purchaseDate }}</td>
+
+          <td class="px-4 py-3 text-sm text-text-main">
+            {{ asset.department }}
+          </td>
+
+          <td class="px-4 py-3 text-sm text-text-main">
+            {{ asset.assignedTo }}
+          </td>
+
+          <td class="px-4 py-3 text-sm text-text-main">
+            {{ asset.purchaseDate }}
+          </td>
 
           <!-- Actions -->
           <td class="px-4 py-3 text-sm flex gap-2" @click.stop>
-            <Button label="Edit" type="secondary" small @click="goToEdit(asset.id)" />
-            <Button label="Delete" type="danger" small @click="deleteAsset(asset.id)" />
+            <Button
+              label="Edit"
+              type="secondary"
+              small
+              @click="goToEdit(asset.id)"
+            />
+            <Button
+              label="Delete"
+              type="danger"
+              small
+              @click="handleDeleteAsset(asset.id)"
+            />
           </td>
         </tr>
 
         <tr v-if="filteredAssets.length === 0">
-          <td colspan="8" class="px-4 py-8 text-center text-text-muted">
+          <td
+            colspan="8"
+            class="px-4 py-8 text-center text-text-muted"
+          >
             No assets found
           </td>
         </tr>

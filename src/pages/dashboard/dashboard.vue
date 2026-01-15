@@ -1,30 +1,33 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import api from '../../services/api';
+import{ getDashboardStats } from '../../services/dashboard'
 
 const totalAssets = ref(0)
-const activeAssets = ref(0)
+//const activeAssets = ref(0)
 const assignedAssets = ref(0)
 const maintenanceAssets = ref(0)
 const retiredAssets = ref(0)
 const lastSync = ref('')
 
-const fetchDashboardData = async () => {
+onMounted(async () => {
   try {
-    const response = await api.get('/dashboard/summary')
-    const data = response.data
-    totalAssets.value = data.totalAssets
-    activeAssets.value = data.activeAssets
-    assignedAssets.value = data.assignedAssets
-    maintenanceAssets.value = data.maintenanceAssets
-    retiredAssets.value = data.retiredAssets
-    lastSync.value = data.lastSync
+    const stats = await getDashboardStats()
+    totalAssets.value = stats.totalAssets
+    assignedAssets.value = stats.assignedAssets
+    maintenanceAssets.value = stats.maintenanceAssets
+    retiredAssets.value = stats.retiredAssets
+    lastSync.value = stats.lastSync
   } catch (error) {
-    console.error('Error fetching dashboard data:', error)
+    console.error('Error fetching dashboard stats:', error)
   }
-}
-
-onMounted(fetchDashboardData)
+  console.log('Dashboard stats loaded', {
+    totalAssets: totalAssets.value,
+    assignedAssets: assignedAssets.value,
+    maintenanceAssets: maintenanceAssets.value,
+    retiredAssets: retiredAssets.value,
+    lastSync: lastSync.value
+  })
+})
 </script>
 
 <template>
