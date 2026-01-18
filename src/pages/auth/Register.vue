@@ -1,24 +1,48 @@
-<script setup>
-import { Shield, ArrowRight, Lock } from 'lucide-vue-next'
-import { ref } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { UserPlus, ArrowRight, Shield, Lock } from 'lucide-vue-next';
+import { AuthService } from '../../services/auth.service';
 
-const email = ref('')
-const password = ref('')
-const loading = ref(false)
-const error = ref('')
+const router = useRouter();
 
-const handleLogin = async () => {
-  loading.value = true
-  error.value = ''
-  
-  // Simulate API call delay
-  await new Promise(r => setTimeout(r, 1200))
-  
-  // Your real auth logic here
-  // if fails → error.value = "Invalid credentials"
-  
-  loading.value = false
-}
+const name = ref('');
+const email = ref('');
+const password = ref('');
+const confirmPassword = ref('');
+const loading = ref(false);
+const error = ref('');
+
+const submit = async () => {
+  error.value = '';
+
+  if (password.value !== confirmPassword.value) {
+    error.value = 'Passwords do not match';
+    return;
+  }
+
+  if (password.value.length < 8) {
+    error.value = 'Password must be at least 8 characters';
+    return;
+  }
+
+  loading.value = true;
+
+  try {
+    await AuthService.register({
+      name: name.value.trim(),
+      email: email.value.trim(),
+      password: password.value,
+      password_confirmation: confirmPassword.value,
+    });
+
+    router.push('/login');
+  } catch (err: any) {
+    error.value = err.response?.data?.message || 'Registration failed. Please try again.';
+  } finally {
+    loading.value = false;
+  }
+};
 </script>
 
 <template>
@@ -26,7 +50,7 @@ const handleLogin = async () => {
     class="min-h-screen relative flex items-center justify-center p-6"
     style="background-color: var(--color-app-bg)"
   >
-    <!-- Background Image (same as landing) -->
+    <!-- Background (same as login) -->
     <div class="fixed inset-0 z-0 pointer-events-none">
       <img
         src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop"
@@ -38,9 +62,7 @@ const handleLogin = async () => {
     </div>
 
     <!-- Card -->
-    <div 
-      class="relative z-10 w-full max-w-md"
-    >
+    <div class="relative z-10 w-full max-w-md">
       <div 
         class="bg-neutral-900/70 backdrop-blur-xl rounded-2xl border overflow-hidden shadow-2xl"
         style="
@@ -55,41 +77,63 @@ const handleLogin = async () => {
             class="w-16 h-16 mx-auto mb-5 rounded-xl flex items-center justify-center"
             style="background-color: var(--color-brand)"
           >
-            <Shield class="w-8 h-8" style="color: var(--color-text-main)" />
+            <UserPlus class="w-8 h-8" style="color: var(--color-text-main)" />
           </div>
           
           <h1 
             class="text-3xl font-bold mb-2"
             style="color: var(--color-text-main)"
           >
-            Welcome Back
+            Create Account
           </h1>
           
           <p 
             class="text-base"
             style="color: var(--color-text-muted)"
           >
-            Sign in to manage your assets securely
+            Join Asset Register and start managing your assets
           </p>
         </div>
 
         <!-- Form -->
-        <form @submit.prevent="handleLogin" class="p-8 pt-6 space-y-6">
-          <!-- Error message -->
+        <form @submit.prevent="submit" class="p-8 pt-6 space-y-6">
+          <!-- Error -->
           <div 
             v-if="error"
             class="p-4 rounded-lg text-sm text-center"
-            style="background-color: rgba(239,68,68,0.15); color: var(--color-danger); border: 1px solid rgba(239,68,68,0.3)"
+            style="
+              background-color: rgba(239,68,68,0.15);
+              color: var(--color-danger);
+              border: 1px solid rgba(239,68,68,0.3);
+            "
           >
             {{ error }}
           </div>
 
+          <!-- Name -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium" style="color: var(--color-text-muted)">
+              Full Name
+            </label>
+            <input
+              v-model="name"
+              type="text"
+              required
+              autocomplete="name"
+              placeholder="John Doe"
+              class="w-full px-4 py-3 rounded-lg outline-none transition-all"
+              style="
+                background-color: var(--color-app-bg);
+                border: 1px solid var(--color-app-border);
+                color: var(--color-text-main);
+              "
+              :class="{ 'focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/30': true }"
+            />
+          </div>
+
           <!-- Email -->
           <div class="space-y-2">
-            <label 
-              class="block text-sm font-medium"
-              style="color: var(--color-text-muted)"
-            >
+            <label class="block text-sm font-medium" style="color: var(--color-text-muted)">
               Email
             </label>
             <input
@@ -104,36 +148,21 @@ const handleLogin = async () => {
                 border: 1px solid var(--color-app-border);
                 color: var(--color-text-main);
               "
-              :class="{
-                'border-green-500/50 focus:border-green-500/70': email.length > 0,
-                'focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/30': true
-              }"
+              :class="{ 'focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/30': true }"
             />
           </div>
 
           <!-- Password -->
           <div class="space-y-2">
-            <div class="flex justify-between items-center">
-              <label 
-                class="block text-sm font-medium"
-                style="color: var(--color-text-muted)"
-              >
-                Password
-              </label>
-              <a 
-                href="#"
-                class="text-sm hover:underline"
-                style="color: var(--color-brand)"
-              >
-                Forgot password?
-              </a>
-            </div>
+            <label class="block text-sm font-medium" style="color: var(--color-text-muted)">
+              Password
+            </label>
             <div class="relative">
               <input
                 v-model="password"
                 type="password"
                 required
-                autocomplete="current-password"
+                autocomplete="new-password"
                 placeholder="••••••••"
                 class="w-full px-4 py-3 rounded-lg outline-none transition-all pr-11"
                 style="
@@ -141,17 +170,33 @@ const handleLogin = async () => {
                   border: 1px solid var(--color-app-border);
                   color: var(--color-text-main);
                 "
-                :class="{
-                  'border-green-500/50 focus:border-green-500/70': password.length > 0,
-                  'focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/30': true
-                }"
+                :class="{ 'focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/30': true }"
               />
-              <button
-                type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white"
-              >
-                <Lock class="w-5 h-5" />
-              </button>
+              <Lock class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+            </div>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium" style="color: var(--color-text-muted)">
+              Confirm Password
+            </label>
+            <div class="relative">
+              <input
+                v-model="confirmPassword"
+                type="password"
+                required
+                autocomplete="new-password"
+                placeholder="••••••••"
+                class="w-full px-4 py-3 rounded-lg outline-none transition-all pr-11"
+                style="
+                  background-color: var(--color-app-bg);
+                  border: 1px solid var(--color-app-border);
+                  color: var(--color-text-main);
+                "
+                :class="{ 'focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/30': true }"
+              />
+              <Lock class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
             </div>
           </div>
 
@@ -171,8 +216,8 @@ const handleLogin = async () => {
               ':hover': loading ? {} : { backgroundColor: 'var(--color-brand-hover)' }
             }"
           >
-            <span v-if="loading">Signing in...</span>
-            <span v-else>Sign In</span>
+            <span v-if="loading">Creating account...</span>
+            <span v-else>Register</span>
             <ArrowRight v-if="!loading" class="w-5 h-5" />
             <svg v-else class="animate-spin h-5 w-5" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
@@ -180,21 +225,21 @@ const handleLogin = async () => {
             </svg>
           </button>
 
-          <!-- Register link -->
+          <!-- Login link -->
           <p class="text-center text-sm pt-2" style="color: var(--color-text-muted)">
-            Don't have an account? 
+            Already have an account? 
             <router-link 
-              to="/register"
+              to="/login"
               class="font-medium hover:underline"
               style="color: var(--color-brand)"
             >
-              Create account
+              Sign in
             </router-link>
           </p>
         </form>
       </div>
 
-      <!-- Footer hint -->
+      <!-- Footer note -->
       <p 
         class="text-center text-xs mt-8"
         style="color: var(--color-text-dim)"

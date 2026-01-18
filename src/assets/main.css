@@ -1,20 +1,42 @@
 @import "tailwindcss";
 
 @theme {
-  /* Backgrounds & Surfaces */
-  --color-app-bg: #0f172a;
-  --color-app-surface: #1e293b;
-  --color-app-border: #1e293b; /* Matches surface or slightly lighter */
-  --color-app-border-pill: #334155; 
+  /* =========================
+     Backgrounds & Surfaces
+     ========================= */
+  --color-app-bg: #0a0a0a;              /* neutral-900 base */
+  --color-app-surface: #171717;         /* neutral-800 cards, nav */
+  --color-app-surface-soft: #262626;    /* neutral-700 hover/borders */
+  --color-app-border: #262626;          
 
-  /* Accents */
-  --color-brand: #6366f1;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
+  /* =========================
+     Brand & Accents
+     ========================= */
+  --color-brand: #16a34a;               /* green-600 (primary brand) */
+  --color-brand-hover: #22c55e;         /* green-500 */
+  --color-brand-soft: rgba(34,197,94,0.1);
+  --color-brand-glow: rgba(22,163,74,0.25);
+
+  /* =========================
+     Status Colors
+     ========================= */
+  --color-success: #22c55e;
+  --color-warning: #facc15;
   --color-danger: #ef4444;
+  --color-info: #38bdf8;
 
-  /* Text */
+  /* =========================
+     Text Colors
+     ========================= */
   --color-text-main: #ffffff;
-  --color-text-muted: #94a3b8;
-  --color-text-dim: #64748b;
+  --color-text-muted: #a3a3a3;          /* neutral-400 */
+  --color-text-dim: #737373;            /* neutral-500 */
+  --color-text-inverse: #0a0a0a;
+
+  /* =========================
+     Effects
+     ========================= */
+  --shadow-brand: 0 20px 40px rgba(22,163,74,0.25);
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.4);
+  --blur-backdrop: blur(12px);
 }
