@@ -1,6 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { Shield, ArrowRight, Lock } from 'lucide-vue-next'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { AuthService } from '../../services/auth.service'
+
+const router = useRouter()
 
 const email = ref('')
 const password = ref('')
@@ -8,19 +12,28 @@ const loading = ref(false)
 const error = ref('')
 
 const handleLogin = async () => {
-  loading.value = true
   error.value = ''
-  
-  // Simulate API call delay
-  await new Promise(r => setTimeout(r, 1200))
-  
-  // Your real auth logic here
-  // if fails → error.value = "Invalid credentials"
-  
-  loading.value = false
+  loading.value = true
+
+  try {
+    await AuthService.login({
+      email: email.value.trim(),
+      password: password.value,
+    })
+
+    // ✅ SPA-safe redirect
+    router.push({ name: 'dashboard' })
+
+    
+  } catch (err: any) {
+    error.value =
+      err?.response?.data?.message ||
+      'Invalid email or password'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
-
 <template>
   <div 
     class="min-h-screen relative flex items-center justify-center p-6"
@@ -32,7 +45,7 @@ const handleLogin = async () => {
         src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop"
         alt="Background"
         class="w-full h-full object-cover"
-        style="opacity: 0.08"
+        style="opacity: 0.10"
       />
       <div class="absolute inset-0" style="background: linear-gradient(to bottom, rgba(10,10,10,0.4), rgba(10,10,10,0.8))"></div>
     </div>
@@ -42,7 +55,7 @@ const handleLogin = async () => {
       class="relative z-10 w-full max-w-md"
     >
       <div 
-        class="bg-neutral-900/70 backdrop-blur-xl rounded-2xl border overflow-hidden shadow-2xl"
+        class=" backdrop-blur-xl rounded-2xl border overflow-hidden shadow-2xl"
         style="
           border-color: var(--color-app-border);
           background-color: var(--color-app-surface);
@@ -157,20 +170,18 @@ const handleLogin = async () => {
 
           <!-- Submit -->
           <button
-            type="submit"
-            :disabled="loading"
-            class="w-full py-3.5 font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg"
-            style="
-              background-color: var(--color-brand);
-              color: var(--color-text-main);
-              box-shadow: var(--shadow-brand);
-            "
-            :style="{
-              opacity: loading ? 0.7 : 1,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              ':hover': loading ? {} : { backgroundColor: 'var(--color-brand-hover)' }
-            }"
-          >
+  type="submit"
+  :disabled="loading"
+  class="w-full py-3.5 font-semibold rounded-lg transition-all
+         flex items-center justify-center gap-2 shadow-lg
+         hover:brightness-110 disabled:opacity-70 disabled:cursor-not-allowed"
+  style="
+    background-color: var(--color-brand);
+    color: var(--color-text-main);
+    box-shadow: var(--shadow-brand);
+  "
+>
+
             <span v-if="loading">Signing in...</span>
             <span v-else>Sign In</span>
             <ArrowRight v-if="!loading" class="w-5 h-5" />

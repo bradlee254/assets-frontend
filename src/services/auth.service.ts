@@ -1,10 +1,24 @@
 import api from './api';
 
 export const AuthService = {
-  login: (data: { email: string; password: string }) => {
-    return api.post('/login', data)
+  async login(data: {
+    email: string; password: string
+  }){
+    const response = await api.post('/login', data)
+
+    const token = response.data.token;
+    const user = response.data.user;
+
+    if(!token){
+      throw new Error('No token received');
+    }
+    if(user){
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('token', token);
+    }
+    return response.data;
   },
-  
+
   register: (data:{
     name: string;
     email: string;

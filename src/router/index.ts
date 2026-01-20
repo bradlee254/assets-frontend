@@ -5,14 +5,14 @@ import Welcome from '../pages/Welcom.vue'
 import { AuthService } from '../services/auth.service'
 
 const routes = [
-  // 🌍 Public Welcome Page
+  //  Public Welcome Page
   {
     path: '/',
     name: 'welcome',
     component: Welcome,
   },
 
-  // 🔓 Auth Pages
+  //  Auth Pages
   {
     path: '/login',
     name: 'login',
@@ -24,14 +24,14 @@ const routes = [
     component: Register,
   },
 
-  // 🔐 Protected App
+  //  Protected App
   {
-    path: '/app',
+    path: '/',
     component: () => import('../components/layout/appLayout.vue'),
     meta: { requiresAuth: true },
     children: [
       {
-        path: '',
+        path: 'dashboard',
         name: 'dashboard',
         component: () => import('../pages/dashboard/dashboard.vue'),
       },
